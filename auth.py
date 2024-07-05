@@ -33,7 +33,7 @@ def login():
     access_token = create_access_token(identity=user.id)
     refresh_token = create_access_token(identity=user.id, fresh=True)
     #return username and name and access token and user id and refresh token
-    return jsonify({'user': user.to_dict(), 'access_token': access_token, 'refresh_token': refresh_token}), 200
+    return jsonify({'user': user.to_dict(), 'token':{'access_token': access_token, 'refresh_token': refresh_token}}), 200
     
 
 
