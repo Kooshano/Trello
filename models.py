@@ -2,11 +2,16 @@ from datetime import datetime
 from app import db
 
 class Workspace(db.Model):
+    __tablename__ = 'workspace'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    tasks = db.relationship('Task', backref='workspace', lazy=True)
+    user_roles = db.relationship('UserWorkspaceRole', backref='workspace', lazy=True)
 
     def to_dict(self):
         return {
@@ -18,6 +23,8 @@ class Workspace(db.Model):
         }
 
 class Task(db.Model):
+    __tablename__ = 'task'
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80), nullable=False)
     description = db.Column(db.Text)
@@ -30,6 +37,8 @@ class Task(db.Model):
     assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    subtasks = db.relationship('SubTask', backref='task', lazy=True)
 
     def to_dict(self):
         return {
@@ -48,6 +57,8 @@ class Task(db.Model):
         }
 
 class SubTask(db.Model):
+    __tablename__ = 'subtask'
+
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
     title = db.Column(db.String(80), nullable=False)
@@ -68,12 +79,18 @@ class SubTask(db.Model):
         }
 
 class User(db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    tasks = db.relationship('Task', backref='assignee', lazy=True)
+    subtasks = db.relationship('SubTask', backref='assignee', lazy=True)
+    user_roles = db.relationship('UserWorkspaceRole', backref='user', lazy=True)
 
     def to_dict(self):
         return {
@@ -85,6 +102,8 @@ class User(db.Model):
         }
 
 class UserWorkspaceRole(db.Model):
+    __tablename__ = 'userworkspacerole'
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
