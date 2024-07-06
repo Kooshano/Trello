@@ -29,10 +29,11 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
     if not user or not check_password_hash(user.password_hash, data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
-
+    
     access_token = create_access_token(identity=user.id)
     refresh_token = create_access_token(identity=user.id, fresh=True)
     #return username and name and access token and user id and refresh token
+    #return access token expire at
     return jsonify({'user': user.to_dict(), 'token':{'access_token': access_token, 'refresh_token': refresh_token}}), 200
     
 
