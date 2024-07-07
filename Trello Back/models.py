@@ -27,12 +27,12 @@ class Task(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80), nullable=False)
-    description = db.Column(db.Text)
-    status = db.Column(db.String(20), nullable=False, default='Planned')
-    estimated_time = db.Column(db.Float)
-    actual_time = db.Column(db.Float)
-    due_date = db.Column(db.DateTime)
-    priority = db.Column(db.String(20))
+    description = db.Column(db.String(200), nullable=True)
+    status = db.Column(db.String(20), default='pending')
+    estimated_time = db.Column(db.Integer, nullable=True)
+    actual_time = db.Column(db.Integer, nullable=True)
+    due_date = db.Column(db.DateTime, nullable=True)
+    priority = db.Column(db.String(10), default='medium')
     workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
     assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -48,12 +48,13 @@ class Task(db.Model):
             'status': self.status,
             'estimated_time': self.estimated_time,
             'actual_time': self.actual_time,
-            'due_date': self.due_date,
+            'due_date': self.due_date.isoformat() + 'Z' if self.due_date else None,
             'priority': self.priority,
             'workspace_id': self.workspace_id,
             'assignee_id': self.assignee_id,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
+            'created_at': self.created_at.isoformat() + 'Z',
+            'updated_at': self.updated_at.isoformat() + 'Z',
+            'subtasks': [subtask.to_dict() for subtask in self.subtasks]
         }
 
 class SubTask(db.Model):
@@ -66,6 +67,17 @@ class SubTask(db.Model):
     assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'task_id': self.task_id,
+            'title': self.title,
+            'is_completed': self.is_completed,
+            'assignee_id': self.assignee_id,
+            'created_at': self.created_at.isoformat() + 'Z',
+            'updated_at': self.updated_at.isoformat() + 'Z'
+        }
 
     def to_dict(self):
         return {
